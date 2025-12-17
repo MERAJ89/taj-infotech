@@ -5,27 +5,68 @@ AOS.init({
     offset: 100
 });
 
-// Navigation functionality
-const hamburger = document.querySelector('.hamburger');
-const navLinks = document.querySelector('.nav-links');
+// Navigation functionality (class-based toggle for mobile)
 let isMenuOpen = false;
 
-hamburger.addEventListener('click', () => {
-    isMenuOpen = !isMenuOpen;
-    if (isMenuOpen) {
-        navLinks.style.display = 'flex';
-        navLinks.style.flexDirection = 'column';
-        navLinks.style.position = 'absolute';
-        navLinks.style.top = '100%';
-        navLinks.style.left = '0';
-        navLinks.style.right = '0';
-        navLinks.style.background = 'white';
-        navLinks.style.padding = '20px';
-        navLinks.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-    } else {
-        navLinks.style.display = 'none';
+// Global functions for opening/closing mobile menu
+function openMenu() {
+    const hamburger = document.querySelector('.hamburger');
+    const navLinks = document.querySelector('.nav-links');
+    if (!hamburger || !navLinks) return;
+    navLinks.classList.add('open');
+    hamburger.classList.add('active');
+    isMenuOpen = true;
+    document.body.style.overflow = 'hidden';
+}
+
+function closeMenu() {
+    const hamburger = document.querySelector('.hamburger');
+    const navLinks = document.querySelector('.nav-links');
+    if (!hamburger || !navLinks) return;
+    navLinks.classList.remove('open');
+    hamburger.classList.remove('active');
+    isMenuOpen = false;
+    document.body.style.overflow = '';
+}
+
+function initMobileNav() {
+    const hamburger = document.querySelector('.hamburger');
+    const navLinks = document.querySelector('.nav-links');
+
+    if (!hamburger || !navLinks) {
+        // Retry when DOM is ready if elements aren't present yet
+        document.addEventListener('DOMContentLoaded', initMobileNav);
+        return;
     }
-});
+
+    hamburger.addEventListener('click', () => {
+        if (isMenuOpen) closeMenu(); else openMenu();
+    });
+
+    // Ensure mobile menu is closed when switching to desktop
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            closeMenu();
+            navLinks.style.display = '';
+        }
+    });
+
+    // Close menu when clicking outside of nav (mobile)
+    document.addEventListener('click', (e) => {
+        const nav = document.querySelector('nav');
+        if (!isMenuOpen) return;
+        if (!nav.contains(e.target)) {
+            closeMenu();
+        }
+    });
+
+    // Close menu with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isMenuOpen) closeMenu();
+    });
+}
+
+initMobileNav();
 
 // Smooth scroll for navigation links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -34,12 +75,9 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         document.querySelector(this.getAttribute('href')).scrollIntoView({
             behavior: 'smooth'
         });
-        
+
         // Close mobile menu when a nav link is clicked
-        if (isMenuOpen) {
-            isMenuOpen = false;
-            navLinks.style.display = 'none';
-        }
+        if (isMenuOpen) closeMenu();
     });
 });
 
@@ -118,12 +156,22 @@ if (statsSection) {
 // Add resize listener for responsive navigation
 window.addEventListener('resize', () => {
     if (window.innerWidth > 768) {
-        navLinks.style.display = 'flex';
-        navLinks.style.flexDirection = 'row';
-        navLinks.style.position = 'static';
-        navLinks.style.padding = '0';
-        navLinks.style.boxShadow = 'none';
-    } else if (!isMenuOpen) {
-        navLinks.style.display = 'none';
+        // Ensure mobile menu is closed when switching to desktop
+        closeMenu();
+        navLinks.style.display = '';
     }
+});
+
+// Close menu when clicking outside of nav (mobile)
+document.addEventListener('click', (e) => {
+    const nav = document.querySelector('nav');
+    if (!isMenuOpen) return;
+    if (!nav.contains(e.target)) {
+        closeMenu();
+    }
+});
+
+// Close menu with Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isMenuOpen) closeMenu();
 });
